@@ -22,3 +22,9 @@ export const auth = initializeAuth(app, {
 
 // Khởi tạo Firestore
 export const db = getFirestore(app); // Hoặc sử dụng getDatabase(app) nếu dùng Realtime Database
+
+//DẶN DÒ
+//Data trong Firestore phải có 2 collection users và services, với collection users mỗi document 
+//phải có 2 field là email và username, với collection services phải có đủ 5 field là name, price,
+//createdBy, createdAt, updatedAt.
+//Phải đủ mấy cái đấy mới link được data từ dưới Firestore lên không là lỗi
