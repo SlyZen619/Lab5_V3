@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { auth, db } from '../firebaseConfig'; // Đảm bảo đã import Firebase
 import { doc, getDoc } from 'firebase/firestore';
+import { ThemeContext } from '../ThemeContext'; // Import ThemeContext
 
 const AccountScreen = () => {
   const [username, setUsername] = useState(''); // State để lưu trữ tên người dùng
   const user = auth.currentUser; // Lấy thông tin người dùng hiện tại
+
+  // Lấy giá trị từ ThemeContext
+  const { isDarkMode } = useContext(ThemeContext);
 
   // Hàm lấy thông tin người dùng từ Firestore
   const fetchUserInfo = async () => {
@@ -31,9 +35,9 @@ const AccountScreen = () => {
   }, [user]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.name}>{username || 'Tên không có'}</Text> 
-      <Text style={styles.email}>{user?.email || 'Email không có'}</Text> 
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333' : '#e7f2b8' }]}>
+      <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{username || 'Tên không có'}</Text> 
+      <Text style={[styles.email, { color: isDarkMode ? '#fff' : '#000' }]}>{user?.email || 'Email không có'}</Text> 
     </View>
   );
 };
@@ -44,7 +48,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#e7f2b8',
   },
   name: {
     fontSize: 24,

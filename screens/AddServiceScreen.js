@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#e7f2b8',
+    backgroundColor: '#fff',
     justifyContent: 'flex-start', // Để các phần tử nằm ở phía trên
   },
   label: {

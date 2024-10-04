@@ -84,7 +84,6 @@ const ServiceDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chi tiết dịch vụ</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Tên dịch vụ:</Text>
         {isEditing ? (

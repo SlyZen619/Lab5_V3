@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
+import React, { useLayoutEffect, useState, useContext, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Switch, BackHandler } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { getDocs, collection } from 'firebase/firestore';
@@ -7,11 +7,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlus, faSignOutAlt, faClipboardList, faUsers, faCog } from '@fortawesome/free-solid-svg-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { ThemeContext } from '../ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
 const HomeScreen = ({ navigation }) => {
   const [services, setServices] = useState([]);
+  const { isDarkMode } = useContext(ThemeContext);
 
   const fetchServices = async () => {
     try {
@@ -30,6 +33,16 @@ const HomeScreen = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       fetchServices();
+
+      const onBackPress = () => {
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        backHandler.remove();
+      };
     }, [])
   );
 
@@ -38,22 +51,20 @@ const HomeScreen = ({ navigation }) => {
       style={styles.serviceItem}
       onPress={() => navigation.navigate('ServiceDetail', { serviceId: item.id })}
     >
-      <Text>{item.name}</Text>
-      <Text>{item.price} đ</Text>
+      <Text style={{ color: isDarkMode ? '#fff' : '#000' }}>{item.name}</Text>
+      <Text style={{ color: isDarkMode ? '#fff' : '#000' }}>{item.price} đ</Text>
     </TouchableOpacity>
   );
 
-  // Xử lý đăng xuất
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.navigate('Login'); // Điều hướng về màn hình đăng nhập
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Lỗi đăng xuất:', error);
     }
   };
 
-  // Thiết lập tiêu đề và icon đăng xuất
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: 'Danh sách dịch vụ',
@@ -66,77 +77,102 @@ const HomeScreen = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Danh sách dịch vụ</Text>
+        <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#000' }]}>Danh sách dịch vụ</Text>
         <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddService')}>
-          <FontAwesomeIcon icon={faPlus} size={24} color="black" />
+          <FontAwesomeIcon icon={faPlus} size={24} color={isDarkMode ? '#fff' : 'black'} />
         </TouchableOpacity>
       </View>
       <FlatList
         data={services}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={<Text>Chưa có dịch vụ nào.</Text>}
+        ListEmptyComponent={<Text style={{ color: isDarkMode ? '#fff' : '#000' }}>Chưa có dịch vụ nào.</Text>}
       />
     </View>
   );
 };
 
-// Các màn hình khác
-const TransactionsScreen = () => (
-  <View style={styles.container}>
-    <Text>Giao dịch</Text>
-  </View>
-);
+const TransactionsScreen = () => {
+  const { isDarkMode } = useContext(ThemeContext);
+  return (
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
+      <Text style={{ color: isDarkMode ? '#fff' : '#000' }}>Giao dịch</Text>
+    </View>
+  );
+};
 
-const CustomersScreen = () => (
-  <View style={styles.container}>
-    <Text>Khách hàng</Text>
-  </View>
-);
+const CustomersScreen = () => {
+  const { isDarkMode } = useContext(ThemeContext);
+  return (
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
+      <Text style={{ color: isDarkMode ? '#fff' : '#000' }}>Khách hàng</Text>
+    </View>
+  );
+};
 
-const SettingsScreen = () => (
-  <View style={styles.container}>
-    <Text>Cài đặt</Text>
-  </View>
-);
+const SettingsScreen = () => {
+  const { toggleTheme, isDarkMode } = useContext(ThemeContext);
+  return (
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
+      <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: 20 }}>
+        Chuyển đổi chế độ tối
+      </Text>
+      <Switch
+        value={isDarkMode}
+        onValueChange={toggleTheme}
+        thumbColor={isDarkMode ? '#fff' : '#f4f3f4'}
+        trackColor={{ false: '#767577', true: '#81b0ff' }}
+      />
+    </View>
+  );
+};
 
 const AppNavigator = () => {
+  const { isDarkMode } = useContext(ThemeContext);
+
   return (
-    <Tab.Navigator>
-      <Tab.Screen 
-        name="Dịch vụ" 
-        component={HomeScreen} 
-        options={{ 
-          headerShown: false, 
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faClipboardList} color={color} size={24} /> 
-        }} 
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { backgroundColor: isDarkMode ? '#1E1E1E' : '#fff' },
+        tabBarActiveTintColor: isDarkMode ? '#fff' : '#1E90FF',
+        tabBarInactiveTintColor: isDarkMode ? '#aaa' : '#555',
+      }}
+    >
+      <Tab.Screen
+        name="Dịch vụ"
+        component={HomeScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faClipboardList} color={color} size={24} />
+        }}
       />
-      <Tab.Screen 
-        name="Giao dịch" 
-        component={TransactionsScreen} 
-        options={{ 
-          headerShown: false, 
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faClipboardList} color={color} size={24} /> 
-        }} 
+      <Tab.Screen
+        name="Giao dịch"
+        component={TransactionsScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faClipboardList} color={color} size={24} />
+        }}
       />
-      <Tab.Screen 
-        name="Khách hàng" 
-        component={CustomersScreen} 
-        options={{ 
-          headerShown: false, 
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faUsers} color={color} size={24} /> 
-        }} 
+      <Tab.Screen
+        name="Khách hàng"
+        component={CustomersScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faUsers} color={color} size={24} />
+        }}
       />
-      <Tab.Screen 
-        name="Cài đặt" 
-        component={SettingsScreen} 
-        options={{ 
-          headerShown: false, 
-          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faCog} color={color} size={24} /> 
-        }} 
-      />
+      <Tab.Screen
+        name="Cài đặt"
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color }) => <FontAwesomeIcon icon={faCog} color={color} size={24} />,
+        }}
+      >
+        {() => <SettingsScreen />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -145,7 +181,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#e7f2b8',
   },
   header: {
     flexDirection: 'row',
